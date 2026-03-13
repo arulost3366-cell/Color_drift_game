@@ -26,6 +26,7 @@ const colorNames={
 
 let colorSet=colorSets[0]
 let colorIndex=0
+
 let balls=[]
 
 function random(min,max){
@@ -42,11 +43,11 @@ this.el=document.createElement("div")
 this.el.className="ball"
 this.el.style.background=this.color
 
-this.x=random(60,820)
-this.y=random(60,420)
+this.x=random(60,800)
+this.y=random(60,400)
 
-this.vx=random(-1,1)
-this.vy=random(-1,1)
+this.vx=random(-2,2)
+this.vy=random(-2,2)
 
 this.dragging=false
 
@@ -80,6 +81,8 @@ this.y=e.clientY-shiftY
 
 this.update()
 
+resolveCollisions()
+
 highlightBins(e.clientX,e.clientY)
 
 }
@@ -91,7 +94,7 @@ document.onmouseup=()=>{
 document.removeEventListener("mousemove",move)
 
 this.dragging=false
-this.el.style.zIndex=200
+this.el.style.zIndex=100
 
 removeHighlight()
 
@@ -110,11 +113,8 @@ if(this.dragging)return
 this.x+=this.vx
 this.y+=this.vy
 
-this.vx*=0.995
-this.vy*=0.995
-
-if(this.x<0||this.x>850)this.vx*=-1
-if(this.y<0||this.y>450)this.vy*=-1
+if(this.x<0||this.x>840)this.vx*=-1
+if(this.y<0||this.y>420)this.vy*=-1
 
 this.update()
 
@@ -132,6 +132,7 @@ let b=balls[j]
 
 let dx=a.x-b.x
 let dy=a.y-b.y
+
 let dist=Math.sqrt(dx*dx+dy*dy)
 
 let minDist=48
@@ -142,8 +143,8 @@ let angle=Math.atan2(dy,dx)
 
 let overlap=minDist-dist
 
-let pushX=Math.cos(angle)*overlap*0.5
-let pushY=Math.sin(angle)*overlap*0.5
+let pushX=Math.cos(angle)*overlap*0.6
+let pushY=Math.sin(angle)*overlap*0.6
 
 a.x+=pushX
 a.y+=pushY
@@ -179,14 +180,14 @@ function spawnBall(){
 
 if(balls.length>=MAX_BALLS)return
 
-balls.push(new Ball())
+let b=new Ball()
+
+balls.push(b)
 
 }
 
 function spawnInitial(){
-
 for(let i=0;i<6;i++)spawnBall()
-
 }
 
 spawnInitial()
@@ -246,11 +247,12 @@ document.querySelectorAll(".bin").forEach(b=>b.classList.remove("active"))
 
 function explode(x,y,color){
 
-for(let i=0;i<14;i++){
+for(let i=0;i<12;i++){
 
 let p=document.createElement("div")
 p.className="particle"
 p.style.background=color
+
 p.style.left=x+"px"
 p.style.top=y+"px"
 
@@ -326,26 +328,9 @@ setTimeout(()=>bin.classList.remove("shake"),300)
 
 }
 
-function transition(){
-
-let t=document.createElement("div")
-t.className="transition"
-t.innerText="NEW COLORS"
-
-playArea.appendChild(t)
-
-setTimeout(()=>t.remove(),2000)
-
-}
-
 function changeColors(){
 
-transition()
-
-setTimeout(()=>{
-
 colorIndex++
-
 if(colorIndex>=colorSets.length)colorIndex=0
 
 colorSet=colorSets[colorIndex]
@@ -355,8 +340,6 @@ balls=[]
 
 updateBins()
 spawnInitial()
-
-},2000)
 
 }
 
