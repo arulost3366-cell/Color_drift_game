@@ -13,7 +13,7 @@ let timeLeft=300
 const colors=["blue","green","yellow","red","purple"]
 let targetIndex=0
 
-document.getElementById("targetColor").innerText = colors[targetIndex].toUpperCase()
+updateTargetUI()
 
 function random(min,max){
 return Math.random()*(max-min)+min
@@ -21,31 +21,41 @@ return Math.random()*(max-min)+min
 
 class Bubble{
 
-constructor(){
-this.x=random(50,canvas.width-50)
-this.y=random(50,canvas.height-50)
-this.radius=random(20,30)
-this.color=colors[Math.floor(Math.random()*colors.length)]
-this.vx=random(-0.5,0.5)
-this.vy=random(-0.5,0.5)
+constructor(forceColor=null){
+this.x=random(80,canvas.width-80)
+this.y=random(80,canvas.height-80)
+this.radius=random(22,28)
+
+this.color = forceColor ? forceColor :
+colors[Math.floor(Math.random()*colors.length)]
+
+this.vx=random(-0.4,0.4)
+this.vy=random(-0.4,0.4)
 }
 
 move(){
+
 this.x+=this.vx
 this.y+=this.vy
 
-if(this.x<0||this.x>canvas.width)this.vx*=-1
-if(this.y<0||this.y>canvas.height)this.vy*=-1
+if(this.x<40||this.x>canvas.width-40)this.vx*=-1
+if(this.y<40||this.y>canvas.height-40)this.vy*=-1
+
 }
 
 draw(){
+
 ctx.beginPath()
 ctx.arc(this.x,this.y,this.radius,0,Math.PI*2)
+
 ctx.fillStyle=this.color
-ctx.shadowBlur=20
-ctx.shadowColor=this.color
+ctx.shadowBlur=6
+ctx.shadowColor="rgba(0,0,0,0.15)"
+
 ctx.fill()
+
 ctx.shadowBlur=0
+
 }
 
 }
@@ -58,7 +68,7 @@ this.y=y
 this.color=color
 this.vx=random(-3,3)
 this.vy=random(-3,3)
-this.life=40
+this.life=35
 }
 
 update(){
@@ -68,16 +78,36 @@ this.life--
 }
 
 draw(){
+
+ctx.globalAlpha=this.life/35
+
 ctx.fillStyle=this.color
 ctx.beginPath()
 ctx.arc(this.x,this.y,4,0,Math.PI*2)
 ctx.fill()
+
+ctx.globalAlpha=1
+
+}
+
+}
+
+function spawnBubble(){
+
+let targetColor = colors[targetIndex]
+
+let chance = Math.random()
+
+if(chance < 0.25){
+bubbles.push(new Bubble(targetColor))
+}else{
+bubbles.push(new Bubble())
 }
 
 }
 
 for(let i=0;i<8;i++){
-bubbles.push(new Bubble())
+spawnBubble()
 }
 
 canvas.addEventListener("click",function(e){
@@ -94,20 +124,28 @@ let dist=Math.sqrt(dx*dx+dy*dy)
 if(dist<b.radius){
 
 if(b.color===colors[targetIndex]){
+
 score++
+
+for(let i=0;i<12;i++){
+particles.push(new Particle(b.x,b.y,b.color))
 }
-else{
+
+}else{
+
 score--
+
+for(let i=0;i<12;i++){
+particles.push(new Particle(b.x,b.y,"black"))
+}
+
 }
 
 document.getElementById("score").innerText=score
 
-for(let i=0;i<15;i++){
-particles.push(new Particle(b.x,b.y,b.color))
-}
-
 bubbles.splice(index,1)
-bubbles.push(new Bubble())
+
+spawnBubble()
 
 }
 
@@ -154,20 +192,34 @@ alert("Training finished")
 
 setInterval(updateTimer,1000)
 
+function updateTargetUI(){
+
+let color=colors[targetIndex]
+
+let target=document.getElementById("targetColor")
+
+target.innerText=color.toUpperCase()
+target.style.color=color
+
+}
+
 function changeTarget(){
 
 targetIndex++
 
-if(targetIndex>=colors.length)targetIndex=colors.length-1
+if(targetIndex>=colors.length){
+targetIndex=0
+}
 
-let newColor=colors[targetIndex]
-
-document.getElementById("targetColor").innerText=newColor.toUpperCase()
+updateTargetUI()
 
 let notice=document.getElementById("colorChange")
 
-notice.innerText="NEW TARGET: "+newColor.toUpperCase()
-notice.style.color=newColor
+let color=colors[targetIndex]
+
+notice.innerText="NEW TARGET: "+color.toUpperCase()
+notice.style.color=color
+
 notice.style.animation="none"
 notice.offsetHeight
 notice.style.animation="fade 2s"
