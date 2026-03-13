@@ -1,120 +1,125 @@
-const playArea = document.getElementById("playArea")
-const binsContainer = document.getElementById("bins")
+const playArea=document.getElementById("playArea")
+const binsContainer=document.getElementById("bins")
 
 let score=0
 let time=300
 
-const MAX_BALLS=18
-const START_BALLS=12
+const MAX_BALLS=14
 
-let balls=[]
-
-/* ---------- RULE SYSTEM ---------- */
+const shapes=["circle","triangle","diamond"]
 
 const colorSets=[
-["#3b82f6","#ef4444","#eab308"],
+["#ef4444","#3b82f6","#eab308"],
 ["#22c55e","#f97316","#ec4899"],
 ["#06b6d4","#a855f7","#facc15"]
 ]
 
-const shapes=["circle","triangle","diamond"]
+let rule="color"
+let colorSet=colorSets[0]
+let colorIndex=0
 
-const rules=["color","shape"]
-
-let ruleIndex=0
-let currentRule="color"
-let colorSetIndex=0
-let currentColors=colorSets[0]
+let balls=[]
 
 function random(min,max){
 return Math.random()*(max-min)+min
 }
 
-/* ---------- BALL ---------- */
-
 class Ball{
 
 constructor(){
 
-this.color=currentColors[Math.floor(Math.random()*3)]
+this.color=colorSet[Math.floor(Math.random()*3)]
 this.shape=shapes[Math.floor(Math.random()*3)]
+
+if(rule==="color") this.shape="circle"
 
 this.el=document.createElement("div")
 this.el.className="ball"
 
+if(this.shape==="circle"){
 this.el.style.background=this.color
+}
 
 if(this.shape==="triangle"){
-this.el.style.clipPath="polygon(50% 0%,0% 100%,100% 100%)"
+this.el.classList.add("triangle")
+this.el.style.borderBottomColor=this.color
 }
 
 if(this.shape==="diamond"){
-this.el.style.transform="rotate(45deg)"
+this.el.classList.add("diamond")
+this.el.style.background=this.color
 }
 
 this.x=random(40,820)
 this.y=random(40,420)
 
-this.vx=random(-0.3,0.3)
-this.vy=random(-0.3,0.3)
+this.vx=random(-.3,.3)
+this.vy=random(-.3,.3)
 
-this.el.style.left=this.x+"px"
-this.el.style.top=this.y+"px"
+this.dragging=false
+
+this.update()
 
 playArea.appendChild(this.el)
 
-this.enableDrag()
+this.drag()
 
 }
 
-enableDrag(){
-
-let ball=this
-
-this.el.addEventListener("mousedown",function(e){
-
-let shiftX=e.clientX-ball.el.offsetLeft
-let shiftY=e.clientY-ball.el.offsetTop
-
-function moveAt(x,y){
-ball.el.style.left=x-shiftX+"px"
-ball.el.style.top=y-shiftY+"px"
+update(){
+this.el.style.left=this.x+"px"
+this.el.style.top=this.y+"px"
 }
 
-function onMouseMove(e){
-moveAt(e.clientX,e.clientY)
+drag(){
+
+this.el.onmousedown=(e)=>{
+
+this.dragging=true
+
+let shiftX=e.clientX-this.x
+let shiftY=e.clientY-this.y
+
+const move=(e)=>{
+
+this.x=e.clientX-shiftX
+this.y=e.clientY-shiftY
+
+this.update()
+
 }
 
-document.addEventListener("mousemove",onMouseMove)
+document.addEventListener("mousemove",move)
 
-document.addEventListener("mouseup",function(){
+document.onmouseup=()=>{
 
-document.removeEventListener("mousemove",onMouseMove)
+document.removeEventListener("mousemove",move)
 
-checkDrop(ball)
+this.dragging=false
 
-},{once:true})
+checkDrop(this)
 
-})
+}
+
+}
 
 }
 
 move(){
 
+if(this.dragging) return
+
 this.x+=this.vx
 this.y+=this.vy
 
-if(this.x<0||this.x>850)this.vx*=-1
-if(this.y<0||this.y>450)this.vy*=-1
+if(this.x<0||this.x>850) this.vx*=-1
+if(this.y<0||this.y>450) this.vy*=-1
 
-this.el.style.left=this.x+"px"
-this.el.style.top=this.y+"px"
-
-}
+this.update()
 
 }
 
-/* ---------- SPAWN ---------- */
+}
 
 function spawnBall(){
 
@@ -126,11 +131,13 @@ balls.push(b)
 
 }
 
-for(let i=0;i<START_BALLS;i++){
-spawnBall()
+function spawnInitial(){
+
+for(let i=0;i<10;i++) spawnBall()
+
 }
 
-/* ---------- ANIMATION ---------- */
+spawnInitial()
 
 function animate(){
 
@@ -142,15 +149,13 @@ requestAnimationFrame(animate)
 
 animate()
 
-/* ---------- BINS ---------- */
-
 function updateBins(){
 
 binsContainer.innerHTML=""
 
-if(currentRule==="color"){
+if(rule==="color"){
 
-currentColors.forEach(c=>{
+colorSet.forEach(c=>{
 
 let bin=document.createElement("div")
 
@@ -166,7 +171,7 @@ binsContainer.appendChild(bin)
 
 }
 
-if(currentRule==="shape"){
+if(rule==="shape"){
 
 shapes.forEach(s=>{
 
@@ -174,7 +179,6 @@ let bin=document.createElement("div")
 
 bin.className="bin"
 bin.style.background="#444"
-
 bin.dataset.shape=s
 
 bin.innerText=s.toUpperCase()
@@ -189,7 +193,27 @@ binsContainer.appendChild(bin)
 
 updateBins()
 
-/* ---------- DROP CHECK ---------- */
+function explode(x,y,color){
+
+for(let i=0;i<16;i++){
+
+let p=document.createElement("div")
+p.className="particle"
+
+p.style.background=color
+p.style.left=x+"px"
+p.style.top=y+"px"
+
+p.style.setProperty("--x",(Math.random()*120-60)+"px")
+p.style.setProperty("--y",(Math.random()*120-60)+"px")
+
+playArea.appendChild(p)
+
+setTimeout(()=>p.remove(),600)
+
+}
+
+}
 
 function checkDrop(ball){
 
@@ -210,13 +234,8 @@ rectBall.bottom>rect.top
 
 let correct=false
 
-if(currentRule==="color"){
-correct=ball.color===bin.dataset.color
-}
-
-if(currentRule==="shape"){
-correct=ball.shape===bin.dataset.shape
-}
+if(rule==="color") correct=ball.color===bin.dataset.color
+if(rule==="shape") correct=ball.shape===bin.dataset.shape
 
 if(correct){
 
@@ -226,6 +245,7 @@ document.getElementById("score").innerText=score
 explode(rect.left+60,rect.top+40,ball.color)
 
 ball.el.remove()
+
 balls.splice(balls.indexOf(ball),1)
 
 spawnBall()
@@ -233,11 +253,10 @@ spawnBall()
 }else{
 
 score--
-document.getElementById("score").innerText=score
 
 bin.classList.add("shake")
 
-setTimeout(()=>bin.classList.remove("shake"),350)
+setTimeout(()=>bin.classList.remove("shake"),300)
 
 }
 
@@ -247,67 +266,62 @@ setTimeout(()=>bin.classList.remove("shake"),350)
 
 }
 
-/* ---------- PARTICLES ---------- */
+function clearBalls(){
 
-function explode(x,y,color){
+balls.forEach(b=>b.el.remove())
 
-for(let i=0;i<18;i++){
-
-let p=document.createElement("div")
-
-p.className="particle"
-
-p.style.background=color
-
-p.style.left=x+"px"
-p.style.top=y+"px"
-
-p.style.setProperty("--x",(Math.random()*120-60)+"px")
-p.style.setProperty("--y",(Math.random()*120-60)+"px")
-
-playArea.appendChild(p)
-
-setTimeout(()=>p.remove(),600)
+balls=[]
 
 }
 
-}
+function transition(){
 
-/* ---------- RULE CHANGE ---------- */
+let t=document.createElement("div")
+
+t.className="transition"
+
+t.innerText=rule==="color" ? "SORT BY SHAPE" : "SORT BY COLOR"
+
+playArea.appendChild(t)
+
+setTimeout(()=>t.remove(),2000)
+
+}
 
 function changeRule(){
 
-ruleIndex++
+transition()
 
-if(ruleIndex>=rules.length){
-ruleIndex=0
-}
+setTimeout(()=>{
 
-currentRule=rules[ruleIndex]
+rule = rule==="color" ? "shape" : "color"
 
-if(currentRule==="color"){
+if(rule==="color"){
 
-colorSetIndex++
+colorIndex++
 
-if(colorSetIndex>=colorSets.length){
-colorSetIndex=0
-}
+if(colorIndex>=colorSets.length) colorIndex=0
 
-currentColors=colorSets[colorSetIndex]
+colorSet=colorSets[colorIndex]
 
 }
 
-document.getElementById("rule").innerText=currentRule.toUpperCase()
+clearBalls()
 
 updateBins()
+
+spawnInitial()
+
+document.getElementById("ruleLabel").innerText=
+rule==="color"?"SORT BY COLOR":"SORT BY SHAPE"
+
+},2000)
 
 }
 
 setInterval(changeRule,30000)
 
-/* ---------- TIMER ---------- */
-
-function updateTimer(){
+function timer(){
 
 time--
 
@@ -317,10 +331,8 @@ let s=time%60
 document.getElementById("time").innerText=
 m+":"+(s<10?"0":"")+s
 
-if(time<=0){
-alert("Game Over")
-}
+if(time<=0) alert("Game Over")
 
 }
 
-setInterval(updateTimer,1000)
+setInterval(timer,1000)
