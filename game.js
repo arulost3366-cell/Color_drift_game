@@ -4,9 +4,8 @@ const binsContainer=document.getElementById("bins")
 let score=0
 let time=300
 
-const MAX_BALLS=12
-
-const icons=["★","●","◆"]
+const MAX_BALLS=10
+const BALL_RADIUS=24
 
 const colorSets=[
 ["#ef4444","#3b82f6","#eab308"],
@@ -26,10 +25,8 @@ const colorNames={
 "#facc15":"GOLD"
 }
 
-let rule="color"
 let colorSet=colorSets[0]
 let colorIndex=0
-
 let balls=[]
 
 function random(min,max){
@@ -41,15 +38,10 @@ class Ball{
 constructor(){
 
 this.color=colorSet[Math.floor(Math.random()*3)]
-this.icon=icons[Math.floor(Math.random()*3)]
 
 this.el=document.createElement("div")
 this.el.className="ball"
 this.el.style.background=this.color
-
-if(rule==="icon"){
-this.el.innerText=this.icon
-}
 
 this.x=random(40,820)
 this.y=random(40,420)
@@ -85,18 +77,21 @@ const move=(e)=>{
 
 this.x=e.clientX-shiftX
 this.y=e.clientY-shiftY
-
 this.update()
+
+highlightBins(e.clientX,e.clientY)
 
 }
 
 document.addEventListener("mousemove",move)
 
-document.onmouseup=()=>{
+document.onmouseup=(e)=>{
 
 document.removeEventListener("mousemove",move)
 
 this.dragging=false
+
+removeHighlight()
 
 checkDrop(this)
 
@@ -113,11 +108,42 @@ if(this.dragging) return
 this.x+=this.vx
 this.y+=this.vy
 
-if(this.x<0||this.x>850) this.vx*=-1
-if(this.y<0||this.y>450) this.vy*=-1
+if(this.x<0||this.x>850)this.vx*=-1
+if(this.y<0||this.y>450)this.vy*=-1
 
 this.update()
 
+}
+
+}
+
+/* physics collision */
+
+function resolveCollisions(){
+
+for(let i=0;i<balls.length;i++){
+for(let j=i+1;j<balls.length;j++){
+
+let a=balls[i]
+let b=balls[j]
+
+let dx=a.x-b.x
+let dy=a.y-b.y
+let dist=Math.sqrt(dx*dx+dy*dy)
+
+if(dist<48){
+
+let angle=Math.atan2(dy,dx)
+
+let targetX=b.x+Math.cos(angle)*48
+let targetY=b.y+Math.sin(angle)*48
+
+a.x+=(targetX-a.x)*0.1
+a.y+=(targetY-a.y)*0.1
+
+}
+
+}
 }
 
 }
@@ -126,16 +152,12 @@ function spawnBall(){
 
 if(balls.length>=MAX_BALLS) return
 
-let b=new Ball()
-
-balls.push(b)
+balls.push(new Ball())
 
 }
 
 function spawnInitial(){
-
-for(let i=0;i<10;i++) spawnBall()
-
+for(let i=0;i<8;i++)spawnBall()
 }
 
 spawnInitial()
@@ -143,6 +165,8 @@ spawnInitial()
 function animate(){
 
 balls.forEach(b=>b.move())
+
+resolveCollisions()
 
 requestAnimationFrame(animate)
 
@@ -154,8 +178,6 @@ function updateBins(){
 
 binsContainer.innerHTML=""
 
-if(rule==="color"){
-
 colorSet.forEach(c=>{
 
 let bin=document.createElement("div")
@@ -163,7 +185,6 @@ let bin=document.createElement("div")
 bin.className="bin"
 bin.style.background=c
 bin.dataset.color=c
-
 bin.innerText=colorNames[c]
 
 binsContainer.appendChild(bin)
@@ -172,35 +193,46 @@ binsContainer.appendChild(bin)
 
 }
 
-if(rule==="icon"){
+updateBins()
 
-icons.forEach(i=>{
+function highlightBins(x,y){
 
-let bin=document.createElement("div")
+let bins=document.querySelectorAll(".bin")
 
-bin.className="bin"
-bin.style.background="#444"
-bin.dataset.icon=i
+bins.forEach(bin=>{
 
-bin.innerText=i
+let rect=bin.getBoundingClientRect()
 
-binsContainer.appendChild(bin)
+if(
+x>rect.left &&
+x<rect.right &&
+y>rect.top &&
+y<rect.bottom
+){
+bin.classList.add("active")
+}else{
+bin.classList.remove("active")
+}
 
 })
 
 }
 
-}
+function removeHighlight(){
 
-updateBins()
+document.querySelectorAll(".bin").forEach(b=>{
+b.classList.remove("active")
+})
+
+}
 
 function explode(x,y,color){
 
 for(let i=0;i<16;i++){
 
 let p=document.createElement("div")
-
 p.className="particle"
+
 p.style.background=color
 
 p.style.left=x+"px"
@@ -214,6 +246,17 @@ playArea.appendChild(p)
 setTimeout(()=>p.remove(),600)
 
 }
+
+}
+
+function magnet(ball,bin){
+
+let rect=bin.getBoundingClientRect()
+
+ball.x=rect.left+rect.width/2-24
+ball.y=rect.top+rect.height/2-24
+
+ball.update()
 
 }
 
@@ -234,23 +277,22 @@ rectBall.top<rect.bottom &&
 rectBall.bottom>rect.top
 ){
 
-let correct=false
-
-if(rule==="color") correct=ball.color===bin.dataset.color
-if(rule==="icon") correct=ball.icon===bin.dataset.icon
+let correct=ball.color===bin.dataset.color
 
 if(correct){
 
 score++
 document.getElementById("score").innerText=score
 
+magnet(ball,bin)
+
 explode(rect.left+60,rect.top+40,ball.color)
 
+setTimeout(()=>{
 ball.el.remove()
-
 balls.splice(balls.indexOf(ball),1)
-
 spawnBall()
+},200)
 
 }else{
 
@@ -269,18 +311,15 @@ setTimeout(()=>bin.classList.remove("shake"),300)
 }
 
 function clearBalls(){
-
 balls.forEach(b=>b.el.remove())
 balls=[]
-
 }
 
 function transition(){
 
 let t=document.createElement("div")
-
 t.className="transition"
-t.innerText=rule==="color" ? "SORT BY ICON" : "SORT BY COLOR"
+t.innerText="NEW COLORS"
 
 playArea.appendChild(t)
 
@@ -288,38 +327,27 @@ setTimeout(()=>t.remove(),2000)
 
 }
 
-function changeRule(){
+function changeColors(){
 
 transition()
 
 setTimeout(()=>{
 
-rule = rule==="color" ? "icon" : "color"
-
-if(rule==="color"){
-
 colorIndex++
 
-if(colorIndex>=colorSets.length) colorIndex=0
+if(colorIndex>=colorSets.length)colorIndex=0
 
 colorSet=colorSets[colorIndex]
 
-}
-
 clearBalls()
-
 updateBins()
-
 spawnInitial()
-
-document.getElementById("ruleLabel").innerText=
-rule==="color"?"SORT BY COLOR":"SORT BY ICON"
 
 },2000)
 
 }
 
-setInterval(changeRule,30000)
+setInterval(changeColors,30000)
 
 function timer(){
 
@@ -331,7 +359,7 @@ let s=time%60
 document.getElementById("time").innerText=
 m+":"+(s<10?"0":"")+s
 
-if(time<=0) alert("Game Over")
+if(time<=0)alert("Game Over")
 
 }
 
