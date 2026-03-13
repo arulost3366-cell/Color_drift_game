@@ -1,26 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Color Drift Game</title>
+<title>Drag Color Sort</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
 <div class="ui">
-
-<div class="topbar">
 <div class="score">Score: <span id="score">0</span></div>
-<div class="target">Target: <span id="targetColor">BLUE</span></div>
-<div class="timer">Time: <span id="time">5:00</span></div>
+</div>
+
+<div id="gameArea">
+
+<div class="bins">
+
+<div class="bin blue" data-color="blue">
+<div class="label">BLUE</div>
+</div>
+
+<div class="bin yellow" data-color="yellow">
+<div class="label">YELLOW</div>
+</div>
+
+<div class="bin red" data-color="red">
+<div class="label">RED</div>
 </div>
 
 </div>
 
-<canvas id="gameCanvas"></canvas>
+<div id="balls"></div>
 
-<div id="colorChange" class="colorChange"></div>
+</div>
 
 <script src="game.js"></script>
 
