@@ -5,7 +5,6 @@ let score=0
 let time=300
 
 const MAX_BALLS=10
-const BALL_RADIUS=24
 
 const colorSets=[
 ["#ef4444","#3b82f6","#eab308"],
@@ -27,6 +26,7 @@ const colorNames={
 
 let colorSet=colorSets[0]
 let colorIndex=0
+
 let balls=[]
 
 function random(min,max){
@@ -69,6 +69,7 @@ enableDrag(){
 this.el.onmousedown=(e)=>{
 
 this.dragging=true
+this.el.style.zIndex=1000
 
 let shiftX=e.clientX-this.x
 let shiftY=e.clientY-this.y
@@ -85,11 +86,12 @@ highlightBins(e.clientX,e.clientY)
 
 document.addEventListener("mousemove",move)
 
-document.onmouseup=(e)=>{
+document.onmouseup=()=>{
 
 document.removeEventListener("mousemove",move)
 
 this.dragging=false
+this.el.style.zIndex=10
 
 removeHighlight()
 
@@ -117,7 +119,7 @@ this.update()
 
 }
 
-/* physics collision */
+/* 碰撞避免重叠 */
 
 function resolveCollisions(){
 
@@ -150,14 +152,16 @@ a.y+=(targetY-a.y)*0.1
 
 function spawnBall(){
 
-if(balls.length>=MAX_BALLS) return
+if(balls.length>=MAX_BALLS)return
 
 balls.push(new Ball())
 
 }
 
 function spawnInitial(){
+
 for(let i=0;i<8;i++)spawnBall()
+
 }
 
 spawnInitial()
@@ -197,18 +201,11 @@ updateBins()
 
 function highlightBins(x,y){
 
-let bins=document.querySelectorAll(".bin")
-
-bins.forEach(bin=>{
+document.querySelectorAll(".bin").forEach(bin=>{
 
 let rect=bin.getBoundingClientRect()
 
-if(
-x>rect.left &&
-x<rect.right &&
-y>rect.top &&
-y<rect.bottom
-){
+if(x>rect.left&&x<rect.right&&y>rect.top&&y<rect.bottom){
 bin.classList.add("active")
 }else{
 bin.classList.remove("active")
@@ -231,8 +228,8 @@ function explode(x,y,color){
 for(let i=0;i<16;i++){
 
 let p=document.createElement("div")
-p.className="particle"
 
+p.className="particle"
 p.style.background=color
 
 p.style.left=x+"px"
@@ -260,6 +257,18 @@ ball.update()
 
 }
 
+function flashScore(){
+
+let scoreEl=document.getElementById("score")
+
+scoreEl.classList.add("scoreFlash")
+
+setTimeout(()=>{
+scoreEl.classList.remove("scoreFlash")
+},350)
+
+}
+
 function checkDrop(ball){
 
 let bins=document.querySelectorAll(".bin")
@@ -270,12 +279,10 @@ bins.forEach(bin=>{
 
 let rect=bin.getBoundingClientRect()
 
-if(
-rectBall.left<rect.right &&
+if(rectBall.left<rect.right &&
 rectBall.right>rect.left &&
 rectBall.top<rect.bottom &&
-rectBall.bottom>rect.top
-){
+rectBall.bottom>rect.top){
 
 let correct=ball.color===bin.dataset.color
 
@@ -297,6 +304,9 @@ spawnBall()
 }else{
 
 score--
+document.getElementById("score").innerText=score
+
+flashScore()
 
 bin.classList.add("shake")
 
@@ -311,8 +321,10 @@ setTimeout(()=>bin.classList.remove("shake"),300)
 }
 
 function clearBalls(){
+
 balls.forEach(b=>b.el.remove())
 balls=[]
+
 }
 
 function transition(){
