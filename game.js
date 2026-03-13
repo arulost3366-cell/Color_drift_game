@@ -39,7 +39,7 @@ constructor(){
 this.color=colorSet[Math.floor(Math.random()*3)]
 
 this.el=document.createElement("div")
-this.el.className="ball"
+this.el.className="ball ballSpawn"
 this.el.style.background=this.color
 
 this.x=random(80,780)
@@ -53,6 +53,10 @@ this.dragging=false
 this.update()
 
 playArea.appendChild(this.el)
+
+setTimeout(()=>{
+this.el.classList.remove("ballSpawn")
+},350)
 
 this.enableDrag()
 
@@ -309,11 +313,14 @@ document.getElementById("score").innerText=score
 
 explode(rect.left+rect.width/2,rect.top+rect.height/2,ball.color)
 
-setTimeout(()=>{
+let index=balls.indexOf(ball)
+if(index!==-1)balls.splice(index,1)
+
 ball.el.remove()
-balls.splice(balls.indexOf(ball),1)
+
+setTimeout(()=>{
 spawnBall()
-},200)
+},60)
 
 }else{
 
