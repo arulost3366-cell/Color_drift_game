@@ -28,8 +28,8 @@ display:flex;
 justify-content:space-between;
 padding:16px 25px;
 font-weight:bold;
-z-index:2;
 position:relative;
+z-index:2;
 }
 
 #playArea{
@@ -50,6 +50,16 @@ cursor:grab;
 box-shadow:0 6px 12px rgba(0,0,0,.25);
 transition:transform .15s ease;
 z-index:100;
+}
+
+.ballSpawn{
+animation:ballSpawn .35s ease-out;
+}
+
+@keyframes ballSpawn{
+0%{transform:scale(.2);opacity:0}
+70%{transform:scale(1.15)}
+100%{transform:scale(1);opacity:1}
 }
 
 .ball:active{
