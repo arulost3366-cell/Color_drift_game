@@ -43,11 +43,11 @@ this.el=document.createElement("div")
 this.el.className="ball"
 this.el.style.background=this.color
 
-this.x=random(60,800)
-this.y=random(60,400)
+this.x=random(80,780)
+this.y=random(80,380)
 
-this.vx=random(-2,2)
-this.vy=random(-2,2)
+this.vx=random(-0.7,0.7)
+this.vy=random(-0.7,0.7)
 
 this.dragging=false
 
@@ -113,6 +113,9 @@ if(this.dragging)return
 this.x+=this.vx
 this.y+=this.vy
 
+this.vx*=0.995
+this.vy*=0.995
+
 if(this.x<0||this.x>840)this.vx*=-1
 if(this.y<0||this.y>420)this.vy*=-1
 
@@ -155,11 +158,11 @@ b.y-=pushY
 let vx=a.vx
 let vy=a.vy
 
-a.vx=b.vx
-a.vy=b.vy
+a.vx=b.vx*1.2
+a.vy=b.vy*1.2
 
-b.vx=vx
-b.vy=vy
+b.vx=vx*1.2
+b.vy=vy*1.2
 
 a.el.style.transform="scale(1.25)"
 b.el.style.transform="scale(1.25)"
@@ -187,7 +190,9 @@ balls.push(b)
 }
 
 function spawnInitial(){
+
 for(let i=0;i<6;i++)spawnBall()
+
 }
 
 spawnInitial()
@@ -242,16 +247,25 @@ bin.classList.remove("active")
 }
 
 function removeHighlight(){
+
 document.querySelectorAll(".bin").forEach(b=>b.classList.remove("active"))
+
 }
 
 function explode(x,y,color){
 
-for(let i=0;i<12;i++){
+for(let i=0;i<20;i++){
 
 let p=document.createElement("div")
+
 p.className="particle"
+
 p.style.background=color
+
+let size=4+Math.random()*4
+
+p.style.width=size+"px"
+p.style.height=size+"px"
 
 p.style.left=x+"px"
 p.style.top=y+"px"
@@ -296,12 +310,19 @@ rectBall.bottom>rect.top){
 
 let correct=ball.color===bin.dataset.color
 
+let playRect=playArea.getBoundingClientRect()
+
 if(correct){
 
 score++
+
 document.getElementById("score").innerText=score
 
-explode(rect.left+60,rect.top+40,ball.color)
+explode(
+rect.left-playRect.left+rect.width/2,
+rect.top-playRect.top+rect.height/2,
+ball.color
+)
 
 setTimeout(()=>{
 ball.el.remove()
@@ -312,6 +333,7 @@ spawnBall()
 }else{
 
 score--
+
 document.getElementById("score").innerText=score
 
 flashScore()
@@ -328,10 +350,33 @@ setTimeout(()=>bin.classList.remove("shake"),300)
 
 }
 
+function showTransition(text){
+
+let overlay=document.createElement("div")
+
+overlay.className="transitionOverlay"
+
+overlay.innerText=text
+
+document.querySelector(".game").appendChild(overlay)
+
+setTimeout(()=>{
+overlay.remove()
+},2000)
+
+}
+
 function changeColors(){
 
+showTransition("New Colors!")
+
+setTimeout(()=>{
+
 colorIndex++
-if(colorIndex>=colorSets.length)colorIndex=0
+
+if(colorIndex>=colorSets.length){
+colorIndex=0
+}
 
 colorSet=colorSets[colorIndex]
 
@@ -340,6 +385,8 @@ balls=[]
 
 updateBins()
 spawnInitial()
+
+},2000)
 
 }
 
