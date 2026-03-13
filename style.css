@@ -1,6 +1,6 @@
 body{
 margin:0;
-background:#f4f6f8;
+background:#f3f5f7;
 font-family:Arial;
 display:flex;
 justify-content:center;
@@ -34,17 +34,16 @@ overflow:hidden;
 }
 
 .ball{
-width:55px;
-height:55px;
+width:50px;
+height:50px;
 border-radius:50%;
 position:absolute;
 cursor:grab;
-box-shadow:0 6px 15px rgba(0,0,0,0.2);
+box-shadow:0 6px 12px rgba(0,0,0,0.2);
 transition:transform 0.2s;
 }
 
 .ball:active{
-cursor:grabbing;
 transform:scale(1.2);
 }
 
@@ -56,25 +55,48 @@ transform:scale(1.2);
 display:flex;
 justify-content:center;
 gap:80px;
-padding:25px;
+padding:20px;
 }
 
 .bin{
 width:130px;
 height:90px;
-border-radius:15px;
+border-radius:14px;
 display:flex;
 align-items:center;
 justify-content:center;
-font-weight:bold;
 color:white;
-transition:0.2s;
+font-weight:bold;
 }
 
 .blue.bin{background:#3b82f6;}
 .yellow.bin{background:#eab308;}
 .red.bin{background:#ef4444;}
 
-.bin:hover{
-transform:scale(1.08);
+.shake{
+animation:shake 0.4s;
+}
+
+@keyframes shake{
+0%{transform:translateX(0)}
+25%{transform:translateX(-6px)}
+50%{transform:translateX(6px)}
+75%{transform:translateX(-6px)}
+100%{transform:translateX(0)}
+}
+
+.particle{
+position:absolute;
+width:6px;
+height:6px;
+border-radius:50%;
+pointer-events:none;
+animation:explode 0.6s forwards;
+}
+
+@keyframes explode{
+to{
+transform:translate(var(--x),var(--y));
+opacity:0;
+}
 }
