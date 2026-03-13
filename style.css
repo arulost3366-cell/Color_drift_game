@@ -22,6 +22,7 @@ box-shadow:0 20px 40px rgba(0,0,0,.2);
 display:flex;
 flex-direction:column;
 overflow:hidden;
+position:relative;
 }
 
 .topbar{
@@ -29,13 +30,17 @@ display:flex;
 justify-content:space-between;
 padding:16px 25px;
 font-weight:bold;
+z-index:1;
 }
 
 #playArea{
 flex:1;
-position:relative;
-overflow:hidden;
-z-index:20;
+position:absolute;
+top:60px;
+left:0;
+right:0;
+bottom:120px;
+z-index:10;
 }
 
 .ball{
@@ -44,8 +49,8 @@ width:48px;
 height:48px;
 border-radius:50%;
 cursor:grab;
-box-shadow:0 6px 12px rgba(0,0,0,.2);
-z-index:200;
+box-shadow:0 6px 12px rgba(0,0,0,.25);
+z-index:100;
 transition:transform .15s cubic-bezier(.2,1.4,.6,1);
 }
 
@@ -55,11 +60,12 @@ transform:scale(1.2);
 }
 
 #bins{
+position:absolute;
+bottom:20px;
+width:100%;
 display:flex;
 justify-content:center;
 gap:70px;
-padding:18px;
-position:relative;
 z-index:5;
 }
 
@@ -122,26 +128,4 @@ to{
 transform:translate(var(--x),var(--y));
 opacity:0;
 }
-}
-
-.transition{
-position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-font-size:42px;
-font-weight:bold;
-background:white;
-padding:20px 40px;
-border-radius:12px;
-box-shadow:0 10px 30px rgba(0,0,0,.2);
-animation:fade 2s;
-z-index:20;
-}
-
-@keyframes fade{
-0%{opacity:0}
-20%{opacity:1}
-80%{opacity:1}
-100%{opacity:0}
 }
