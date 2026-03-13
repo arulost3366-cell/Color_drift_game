@@ -4,15 +4,27 @@ const binsContainer=document.getElementById("bins")
 let score=0
 let time=300
 
-const MAX_BALLS=14
+const MAX_BALLS=12
 
-const shapes=["circle","triangle","diamond"]
+const icons=["★","●","◆"]
 
 const colorSets=[
 ["#ef4444","#3b82f6","#eab308"],
 ["#22c55e","#f97316","#ec4899"],
 ["#06b6d4","#a855f7","#facc15"]
 ]
+
+const colorNames={
+"#ef4444":"RED",
+"#3b82f6":"BLUE",
+"#eab308":"YELLOW",
+"#22c55e":"GREEN",
+"#f97316":"ORANGE",
+"#ec4899":"PINK",
+"#06b6d4":"CYAN",
+"#a855f7":"PURPLE",
+"#facc15":"GOLD"
+}
 
 let rule="color"
 let colorSet=colorSets[0]
@@ -29,32 +41,21 @@ class Ball{
 constructor(){
 
 this.color=colorSet[Math.floor(Math.random()*3)]
-this.shape=shapes[Math.floor(Math.random()*3)]
-
-if(rule==="color") this.shape="circle"
+this.icon=icons[Math.floor(Math.random()*3)]
 
 this.el=document.createElement("div")
 this.el.className="ball"
-
-if(this.shape==="circle"){
 this.el.style.background=this.color
-}
 
-if(this.shape==="triangle"){
-this.el.classList.add("triangle")
-this.el.style.borderBottomColor=this.color
-}
-
-if(this.shape==="diamond"){
-this.el.classList.add("diamond")
-this.el.style.background=this.color
+if(rule==="icon"){
+this.el.innerText=this.icon
 }
 
 this.x=random(40,820)
 this.y=random(40,420)
 
-this.vx=random(-.3,.3)
-this.vy=random(-.3,.3)
+this.vx=random(-.4,.4)
+this.vy=random(-.4,.4)
 
 this.dragging=false
 
@@ -62,7 +63,7 @@ this.update()
 
 playArea.appendChild(this.el)
 
-this.drag()
+this.enableDrag()
 
 }
 
@@ -71,7 +72,7 @@ this.el.style.left=this.x+"px"
 this.el.style.top=this.y+"px"
 }
 
-drag(){
+enableDrag(){
 
 this.el.onmousedown=(e)=>{
 
@@ -163,7 +164,7 @@ bin.className="bin"
 bin.style.background=c
 bin.dataset.color=c
 
-bin.innerText="COLOR"
+bin.innerText=colorNames[c]
 
 binsContainer.appendChild(bin)
 
@@ -171,17 +172,17 @@ binsContainer.appendChild(bin)
 
 }
 
-if(rule==="shape"){
+if(rule==="icon"){
 
-shapes.forEach(s=>{
+icons.forEach(i=>{
 
 let bin=document.createElement("div")
 
 bin.className="bin"
 bin.style.background="#444"
-bin.dataset.shape=s
+bin.dataset.icon=i
 
-bin.innerText=s.toUpperCase()
+bin.innerText=i
 
 binsContainer.appendChild(bin)
 
@@ -198,9 +199,10 @@ function explode(x,y,color){
 for(let i=0;i<16;i++){
 
 let p=document.createElement("div")
-p.className="particle"
 
+p.className="particle"
 p.style.background=color
+
 p.style.left=x+"px"
 p.style.top=y+"px"
 
@@ -235,7 +237,7 @@ rectBall.bottom>rect.top
 let correct=false
 
 if(rule==="color") correct=ball.color===bin.dataset.color
-if(rule==="shape") correct=ball.shape===bin.dataset.shape
+if(rule==="icon") correct=ball.icon===bin.dataset.icon
 
 if(correct){
 
@@ -269,7 +271,6 @@ setTimeout(()=>bin.classList.remove("shake"),300)
 function clearBalls(){
 
 balls.forEach(b=>b.el.remove())
-
 balls=[]
 
 }
@@ -279,8 +280,7 @@ function transition(){
 let t=document.createElement("div")
 
 t.className="transition"
-
-t.innerText=rule==="color" ? "SORT BY SHAPE" : "SORT BY COLOR"
+t.innerText=rule==="color" ? "SORT BY ICON" : "SORT BY COLOR"
 
 playArea.appendChild(t)
 
@@ -294,7 +294,7 @@ transition()
 
 setTimeout(()=>{
 
-rule = rule==="color" ? "shape" : "color"
+rule = rule==="color" ? "icon" : "color"
 
 if(rule==="color"){
 
@@ -313,7 +313,7 @@ updateBins()
 spawnInitial()
 
 document.getElementById("ruleLabel").innerText=
-rule==="color"?"SORT BY COLOR":"SORT BY SHAPE"
+rule==="color"?"SORT BY COLOR":"SORT BY ICON"
 
 },2000)
 
