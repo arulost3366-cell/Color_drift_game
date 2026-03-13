@@ -4,7 +4,7 @@ const binsContainer=document.getElementById("bins")
 let score=0
 let time=300
 
-const MAX_BALLS=8
+const MAX_BALLS=7
 
 const colorSets=[
 ["#ef4444","#3b82f6","#eab308"],
@@ -26,7 +26,6 @@ const colorNames={
 
 let colorSet=colorSets[0]
 let colorIndex=0
-
 let balls=[]
 
 function random(min,max){
@@ -44,10 +43,10 @@ this.el.className="ball"
 this.el.style.background=this.color
 
 this.x=random(80,780)
-this.y=random(80,380)
+this.y=random(80,320)
 
-this.vx=random(-0.7,0.7)
-this.vy=random(-0.7,0.7)
+this.vx=random(-0.25,0.25)
+this.vy=random(-0.25,0.25)
 
 this.dragging=false
 
@@ -113,11 +112,20 @@ if(this.dragging)return
 this.x+=this.vx
 this.y+=this.vy
 
-this.vx*=0.995
-this.vy*=0.995
+this.vx+=random(-0.01,0.01)
+this.vy+=random(-0.01,0.01)
 
-if(this.x<0||this.x>840)this.vx*=-1
-if(this.y<0||this.y>420)this.vy*=-1
+this.vx*=0.998
+this.vy*=0.998
+
+const maxY=340
+
+if(this.x<0||this.x>840)this.vx*=-0.5
+if(this.y<0)this.vy*=-0.5
+if(this.y>maxY){
+this.y=maxY
+this.vy*=-0.3
+}
 
 this.update()
 
@@ -146,31 +154,21 @@ let angle=Math.atan2(dy,dx)
 
 let overlap=minDist-dist
 
-let pushX=Math.cos(angle)*overlap*0.6
-let pushY=Math.sin(angle)*overlap*0.6
+let push=overlap*0.35
 
-a.x+=pushX
-a.y+=pushY
+a.x+=Math.cos(angle)*push
+a.y+=Math.sin(angle)*push
 
-b.x-=pushX
-b.y-=pushY
+b.x-=Math.cos(angle)*push
+b.y-=Math.sin(angle)*push
 
-let vx=a.vx
-let vy=a.vy
-
-a.vx=b.vx*1.2
-a.vy=b.vy*1.2
-
-b.vx=vx*1.2
-b.vy=vy*1.2
-
-a.el.style.transform="scale(1.25)"
-b.el.style.transform="scale(1.25)"
+a.el.style.transform="scale(1.08)"
+b.el.style.transform="scale(1.08)"
 
 setTimeout(()=>{
 a.el.style.transform="scale(1)"
 b.el.style.transform="scale(1)"
-},120)
+},80)
 
 }
 
@@ -184,15 +182,12 @@ function spawnBall(){
 if(balls.length>=MAX_BALLS)return
 
 let b=new Ball()
-
 balls.push(b)
 
 }
 
 function spawnInitial(){
-
 for(let i=0;i<6;i++)spawnBall()
-
 }
 
 spawnInitial()
@@ -247,19 +242,17 @@ bin.classList.remove("active")
 }
 
 function removeHighlight(){
-
 document.querySelectorAll(".bin").forEach(b=>b.classList.remove("active"))
-
 }
 
 function explode(x,y,color){
 
-for(let i=0;i<20;i++){
+let playRect=playArea.getBoundingClientRect()
+
+for(let i=0;i<18;i++){
 
 let p=document.createElement("div")
-
 p.className="particle"
-
 p.style.background=color
 
 let size=4+Math.random()*4
@@ -267,8 +260,8 @@ let size=4+Math.random()*4
 p.style.width=size+"px"
 p.style.height=size+"px"
 
-p.style.left=x+"px"
-p.style.top=y+"px"
+p.style.left=(x-playRect.left)+"px"
+p.style.top=(y-playRect.top)+"px"
 
 p.style.setProperty("--x",(Math.random()*120-60)+"px")
 p.style.setProperty("--y",(Math.random()*120-60)+"px")
@@ -296,7 +289,6 @@ s.classList.remove("scoreFlash")
 function checkDrop(ball){
 
 let bins=document.querySelectorAll(".bin")
-
 let rectBall=ball.el.getBoundingClientRect()
 
 bins.forEach(bin=>{
@@ -310,19 +302,12 @@ rectBall.bottom>rect.top){
 
 let correct=ball.color===bin.dataset.color
 
-let playRect=playArea.getBoundingClientRect()
-
 if(correct){
 
 score++
-
 document.getElementById("score").innerText=score
 
-explode(
-rect.left-playRect.left+rect.width/2,
-rect.top-playRect.top+rect.height/2,
-ball.color
-)
+explode(rect.left+rect.width/2,rect.top+rect.height/2,ball.color)
 
 setTimeout(()=>{
 ball.el.remove()
@@ -333,7 +318,6 @@ spawnBall()
 }else{
 
 score--
-
 document.getElementById("score").innerText=score
 
 flashScore()
@@ -353,9 +337,7 @@ setTimeout(()=>bin.classList.remove("shake"),300)
 function showTransition(text){
 
 let overlay=document.createElement("div")
-
 overlay.className="transitionOverlay"
-
 overlay.innerText=text
 
 document.querySelector(".game").appendChild(overlay)
