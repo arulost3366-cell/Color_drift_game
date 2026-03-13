@@ -4,7 +4,7 @@ const binsContainer=document.getElementById("bins")
 let score=0
 let time=300
 
-const MAX_BALLS=10
+const MAX_BALLS=8
 
 const colorSets=[
 ["#ef4444","#3b82f6","#eab308"],
@@ -26,7 +26,6 @@ const colorNames={
 
 let colorSet=colorSets[0]
 let colorIndex=0
-
 let balls=[]
 
 function random(min,max){
@@ -43,11 +42,11 @@ this.el=document.createElement("div")
 this.el.className="ball"
 this.el.style.background=this.color
 
-this.x=random(40,820)
-this.y=random(40,420)
+this.x=random(60,820)
+this.y=random(60,420)
 
-this.vx=random(-.4,.4)
-this.vy=random(-.4,.4)
+this.vx=random(-1,1)
+this.vy=random(-1,1)
 
 this.dragging=false
 
@@ -69,7 +68,7 @@ enableDrag(){
 this.el.onmousedown=(e)=>{
 
 this.dragging=true
-this.el.style.zIndex=1000
+this.el.style.zIndex=9999
 
 let shiftX=e.clientX-this.x
 let shiftY=e.clientY-this.y
@@ -78,6 +77,7 @@ const move=(e)=>{
 
 this.x=e.clientX-shiftX
 this.y=e.clientY-shiftY
+
 this.update()
 
 highlightBins(e.clientX,e.clientY)
@@ -91,7 +91,7 @@ document.onmouseup=()=>{
 document.removeEventListener("mousemove",move)
 
 this.dragging=false
-this.el.style.zIndex=10
+this.el.style.zIndex=200
 
 removeHighlight()
 
@@ -105,10 +105,13 @@ checkDrop(this)
 
 move(){
 
-if(this.dragging) return
+if(this.dragging)return
 
 this.x+=this.vx
 this.y+=this.vy
+
+this.vx*=0.995
+this.vy*=0.995
 
 if(this.x<0||this.x>850)this.vx*=-1
 if(this.y<0||this.y>450)this.vy*=-1
@@ -118,8 +121,6 @@ this.update()
 }
 
 }
-
-/* 碰撞避免重叠 */
 
 function resolveCollisions(){
 
@@ -133,15 +134,39 @@ let dx=a.x-b.x
 let dy=a.y-b.y
 let dist=Math.sqrt(dx*dx+dy*dy)
 
-if(dist<48){
+let minDist=48
+
+if(dist<minDist){
 
 let angle=Math.atan2(dy,dx)
 
-let targetX=b.x+Math.cos(angle)*48
-let targetY=b.y+Math.sin(angle)*48
+let overlap=minDist-dist
 
-a.x+=(targetX-a.x)*0.1
-a.y+=(targetY-a.y)*0.1
+let pushX=Math.cos(angle)*overlap*0.5
+let pushY=Math.sin(angle)*overlap*0.5
+
+a.x+=pushX
+a.y+=pushY
+
+b.x-=pushX
+b.y-=pushY
+
+let vx=a.vx
+let vy=a.vy
+
+a.vx=b.vx
+a.vy=b.vy
+
+b.vx=vx
+b.vy=vy
+
+a.el.style.transform="scale(1.25)"
+b.el.style.transform="scale(1.25)"
+
+setTimeout(()=>{
+a.el.style.transform="scale(1)"
+b.el.style.transform="scale(1)"
+},120)
 
 }
 
@@ -160,7 +185,7 @@ balls.push(new Ball())
 
 function spawnInitial(){
 
-for(let i=0;i<8;i++)spawnBall()
+for(let i=0;i<6;i++)spawnBall()
 
 }
 
@@ -216,22 +241,16 @@ bin.classList.remove("active")
 }
 
 function removeHighlight(){
-
-document.querySelectorAll(".bin").forEach(b=>{
-b.classList.remove("active")
-})
-
+document.querySelectorAll(".bin").forEach(b=>b.classList.remove("active"))
 }
 
 function explode(x,y,color){
 
-for(let i=0;i<16;i++){
+for(let i=0;i<14;i++){
 
 let p=document.createElement("div")
-
 p.className="particle"
 p.style.background=color
-
 p.style.left=x+"px"
 p.style.top=y+"px"
 
@@ -246,25 +265,14 @@ setTimeout(()=>p.remove(),600)
 
 }
 
-function magnet(ball,bin){
-
-let rect=bin.getBoundingClientRect()
-
-ball.x=rect.left+rect.width/2-24
-ball.y=rect.top+rect.height/2-24
-
-ball.update()
-
-}
-
 function flashScore(){
 
-let scoreEl=document.getElementById("score")
+let s=document.getElementById("score")
 
-scoreEl.classList.add("scoreFlash")
+s.classList.add("scoreFlash")
 
 setTimeout(()=>{
-scoreEl.classList.remove("scoreFlash")
+s.classList.remove("scoreFlash")
 },350)
 
 }
@@ -290,8 +298,6 @@ if(correct){
 
 score++
 document.getElementById("score").innerText=score
-
-magnet(ball,bin)
 
 explode(rect.left+60,rect.top+40,ball.color)
 
@@ -320,13 +326,6 @@ setTimeout(()=>bin.classList.remove("shake"),300)
 
 }
 
-function clearBalls(){
-
-balls.forEach(b=>b.el.remove())
-balls=[]
-
-}
-
 function transition(){
 
 let t=document.createElement("div")
@@ -351,7 +350,9 @@ if(colorIndex>=colorSets.length)colorIndex=0
 
 colorSet=colorSets[colorIndex]
 
-clearBalls()
+balls.forEach(b=>b.el.remove())
+balls=[]
+
 updateBins()
 spawnInitial()
 
@@ -370,8 +371,6 @@ let s=time%60
 
 document.getElementById("time").innerText=
 m+":"+(s<10?"0":"")+s
-
-if(time<=0)alert("Game Over")
 
 }
 
