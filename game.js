@@ -28,7 +28,8 @@ let colorSet=colorSets[0]
 let colorIndex=0
 let balls=[]
 
-/* ===== 新增：控制游戏启动 ===== */
+
+/* ===== 控制游戏启动 ===== */
 
 let gameStarted=false
 let timerInterval=null
@@ -49,7 +50,8 @@ startTimer()
 
 }
 
-/* ===== 新增结束 ===== */
+/* ===== 结束 ===== */
+
 
 function random(min,max){
 return Math.random()*(max-min)+min
@@ -404,7 +406,9 @@ spawnInitial()
 
 setInterval(changeColors,30000)
 
-/* ===== 修改 timer 启动方式 ===== */
+
+
+/* ===== 修复 timer ===== */
 
 function timer(){
 
@@ -421,6 +425,8 @@ m+":"+(s<10?"0":"")+s
 }
 
 function startTimer(){
+
+if(timerInterval!==null) return
 
 timerInterval=setInterval(timer,1000)
 
