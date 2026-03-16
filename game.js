@@ -29,24 +29,13 @@ let colorIndex=0
 let balls=[]
 
 
-/* ===== 游戏启动控制 ===== */
+/* ===== 游戏启动 ===== */
 
-let gameStarted=false
 let timerInterval=null
 
-window.addEventListener("message",(event)=>{
-
-if(event.data==="start_game"){
-startGame()
-}
-
-})
+window.addEventListener("load",startGame)
 
 function startGame(){
-
-if(gameStarted) return
-
-gameStarted=true
 
 startTimer()
 
@@ -414,8 +403,6 @@ setInterval(changeColors,30000)
 
 function timer(){
 
-if(!gameStarted) return
-
 time--
 
 if(time<=0){
@@ -435,8 +422,6 @@ el.innerText=m+":"+(s<10?"0":"")+s
 }
 
 function startTimer(){
-
-if(timerInterval!==null) return
 
 timer()
 timerInterval=setInterval(timer,1000)
