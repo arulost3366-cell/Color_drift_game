@@ -50,8 +50,8 @@ startTimer()
 
 }
 
-/* 自动启动（防止gorilla message丢失） */
-window.addEventListener("load",startGame)
+/* 页面加载后自动启动（gorilla iframe稳定） */
+window.addEventListener("DOMContentLoaded",startGame)
 
 /* ===== 结束 ===== */
 
@@ -411,7 +411,7 @@ setInterval(changeColors,30000)
 
 
 
-/* ===== 修复 timer ===== */
+/* ===== TIMER ===== */
 
 function timer(){
 
@@ -419,11 +419,19 @@ if(!gameStarted) return
 
 time--
 
+if(time<=0){
+clearInterval(timerInterval)
+time=0
+}
+
 let m=Math.floor(time/60)
 let s=time%60
 
-document.getElementById("time").innerText=
-m+":"+(s<10?"0":"")+s
+const timeEl=document.getElementById("time")
+
+if(timeEl){
+timeEl.innerText=m+":"+(s<10?"0":"")+s
+}
 
 }
 
@@ -431,6 +439,7 @@ function startTimer(){
 
 if(timerInterval!==null) return
 
+timer()
 timerInterval=setInterval(timer,1000)
 
 }
