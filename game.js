@@ -50,6 +50,9 @@ startTimer()
 
 }
 
+/* 自动启动（防止gorilla message丢失） */
+window.addEventListener("load",startGame)
+
 /* ===== 结束 ===== */
 
 
