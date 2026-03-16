@@ -29,15 +29,17 @@ let colorIndex=0
 let balls=[]
 
 
-/* ===== 控制游戏启动 ===== */
+/* ===== 游戏启动控制 ===== */
 
 let gameStarted=false
 let timerInterval=null
 
 window.addEventListener("message",(event)=>{
+
 if(event.data==="start_game"){
 startGame()
 }
+
 })
 
 function startGame(){
@@ -49,9 +51,6 @@ gameStarted=true
 startTimer()
 
 }
-
-/* 页面加载后自动启动（gorilla iframe稳定） */
-window.addEventListener("DOMContentLoaded",startGame)
 
 /* ===== 结束 ===== */
 
@@ -420,17 +419,17 @@ if(!gameStarted) return
 time--
 
 if(time<=0){
-clearInterval(timerInterval)
 time=0
+clearInterval(timerInterval)
 }
 
 let m=Math.floor(time/60)
 let s=time%60
 
-const timeEl=document.getElementById("time")
+const el=document.getElementById("time")
 
-if(timeEl){
-timeEl.innerText=m+":"+(s<10?"0":"")+s
+if(el){
+el.innerText=m+":"+(s<10?"0":"")+s
 }
 
 }
